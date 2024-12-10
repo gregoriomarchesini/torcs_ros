@@ -454,7 +454,6 @@ void torcs_ros_client_node::timer_callback()
       {
           sprintf (buf_, "(meta 1)");
       }
-
         // send action string back to TORCS
         if (sendto(socketDescriptor_, buf_, strlen(buf_)+1, 0, (struct sockaddr *) &serverAddress_, sizeof(serverAddress_)) < 0)
         {
@@ -466,8 +465,6 @@ void torcs_ros_client_node::timer_callback()
         {
             RCLCPP_DEBUG(get_logger(), "Sending: %s", buf_);
         }
-
-
     }
     else
     {
@@ -509,8 +506,8 @@ void torcs_ros_client_node::getParams()
     declare_parameter("num_focus_ranges", (int)19);
     config_.num_focus_ranges = get_parameter("num_focus_ranges").as_int(); 
 
-    declare_parameter("loop_rate", (int)100);
-    config_.loop_rate = get_parameter("loop_rate").as_int(); 
+    declare_parameter("loop_rate", (double)100.0);
+    config_.loop_rate = get_parameter("loop_rate").as_double(); 
 }
 
 int main(int argc, char** argv)
