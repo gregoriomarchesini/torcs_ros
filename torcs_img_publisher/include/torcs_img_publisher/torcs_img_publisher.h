@@ -6,18 +6,19 @@
 #include <sys/shm.h>
 #include <stdlib.h>  
 #include <stdio.h>
-#include <opencv2/opencv.hpp>
+#include "opencv2/core/mat.hpp"
+#include "opencv2/imgcodecs.hpp"
 #include "opencv2/highgui/highgui.hpp"
 
 using namespace std;
 using namespace cv;
 
 // ROS includes
-#include <ros/ros.h>
-#include <std_msgs/Header.h>
-#include <sensor_msgs/Image.h>
-#include <image_transport/image_transport.h>
-#include <cv_bridge/cv_bridge.h>
+#include "rclcpp/rclcpp.hpp"
+#include "std_msgs/msg/header.hpp"
+#include "sensor_msgs/msg/image.hpp"
+#include "image_transport/image_transport.hpp"
+#include "cv_bridge/cv_bridge.hpp"
 
 #define image_width 640
 #define image_height 480
@@ -31,41 +32,42 @@ struct shared_use_st
   int save_flag; 
 };
 
-class TORCSImgPublisherNode{
+class torcs_image_publisher_node : public rclcpp::Node 
+{
 private:
-  struct config_struct{
-    int resize_width, resize_height;
-    double loop_rate;
-    int paused;
-  };
-  void *shm = NULL;
-  struct shared_use_st *shared_;
-  int shmid;
+    struct config_struct{
+        int resize_width, resize_height;
+        double loop_rate;
+        int paused;
+    };
+    void *shm = NULL;
+    struct shared_use_st *shared_;
+    int shmid;
 
-  // Setup opencv
-  IplImage* screenRGB_;
-  IplImage* resizeRGB_;
+    // Setup opencv
+    cv::Mat screenRGB_;
+    cv::Mat resizeRGB_;
 
-  std_msgs::Header header_;
+    std_msgs::msg::Header header_;
 
-  config_struct config_;
+    config_struct config_;
 
 public:
   
-  TORCSImgPublisherNode();
+    rclcpp::TimerBase::SharedPtr timer_;
+    torcs_image_publisher_node();
 
-  ~TORCSImgPublisherNode();
+    ~torcs_image_publisher_node();
 
-  ros::NodeHandle nh_, pnh_;
-  image_transport::ImageTransport it_;
+    image_transport::ImageTransport it_;
 
-  image_transport::Publisher image_publisher_;
+    image_transport::Publisher image_publisher_;
 
-  void update();
+    void timer_callback();
 
-  double getLoopRate();
+    double getLoopRate();
 
-  void getParams();
+    void getParams();
 
 };
 

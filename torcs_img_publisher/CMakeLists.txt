@@ -1,21 +1,13 @@
-cmake_minimum_required(VERSION 2.8.3)
+cmake_minimum_required(VERSION 3.8)
 project(torcs_img_publisher)
 
-## Add support for C++11, supported in ROS Kinetic and newer
-# add_definitions(-std=c++11)
-
-## Find catkin macros and libraries
-## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
-## is used, also find other catkin packages
-find_package(catkin REQUIRED COMPONENTS
-  roscpp
-  rospy
-  sensor_msgs
-  std_msgs
-  cv_bridge
-  image_geometry
-  image_transport
-)
+find_package(ament_cmake REQUIRED)
+find_package(rclcpp REQUIRED)
+find_package(sensor_msgs REQUIRED)
+find_package(std_msgs REQUIRED)
+find_package(cv_bridge REQUIRED)
+find_package(image_geometry REQUIRED)
+find_package(image_transport REQUIRED)
 
 if(OpenCV_VERSION VERSION_LESS "3.0")
   # use 2.4 modules
@@ -23,22 +15,53 @@ else()
   # use 3.x modules
 endif()
 
-catkin_package()
-
-## Specify additional locations of header files
-## Your package locations should be listed before other locations
-# include_directories(include)
 include_directories(
-  include
-  ${catkin_INCLUDE_DIRS}
+    include
 )
 
-## Declare a C++ executable
-## With catkin_make all packages are built within a single CMake context
-## The recommended prefix ensures that target names across packages don't collide
-add_executable(torcs_img_publisher_node src/torcs_img_publisher.cpp)
-target_link_libraries(torcs_img_publisher_node 
-  ${catkin_LIBRARIES} 
-)
-add_dependencies(torcs_img_publisher_node ${catkin_EXPORTED_TARGETS})
+add_executable(${PROJECT_NAME} src/torcs_img_publisher.cpp)
 
+ament_target_dependencies(${PROJECT_NAME}
+    rclcpp
+    sensor_msgs
+    std_msgs
+    cv_bridge
+    image_geometry
+    image_transport
+)
+
+target_include_directories(${PROJECT_NAME} PRIVATE
+    ${rclcpp_INCLUDE_DIRS}
+    ${sensor_msgs_INCLUDE_DIRS}
+    ${std_msgs_INCLUDE_DIRS}
+    ${cv_bridge_INCLUDE_DIRS}
+    ${image_geometry_INCLUDE_DIRS}
+    ${image_transport_INCLUDE_DIRS}
+)
+
+target_link_libraries(${PROJECT_NAME} 
+    ${rclcpp_INCLUDE_DIRS}
+    ${sensor_msgs_INCLUDE_DIRS}
+    ${std_msgs_INCLUDE_DIRS}
+    ${cv_bridge_INCLUDE_DIRS}
+    ${image_geometry_INCLUDE_DIRS}
+    ${image_transport_INCLUDE_DIRS}
+)
+
+install(DIRECTORY
+    config
+    launch
+    DESTINATION share/${PROJECT_NAME}
+)
+
+install(TARGETS
+    ${PROJECT_NAME}
+    DESTINATION lib/${PROJECT_NAME}
+)
+
+if(BUILD_TESTING)
+    find_package(ament_lint_auto REQUIRED)
+    ament_lint_auto_find_test_dependencies()
+endif()
+
+ament_package()
