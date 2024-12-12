@@ -1,4 +1,3 @@
-#include "sensor_msgs/msg/laser_scan.hpp"
 #include <torcs_ros_drive_ctrl/torcs_ros_drive_ctrl_node.h>
 
 torcs_ros_drive_ctrl::torcs_ros_drive_ctrl() : Node("torcs_ros_drive_ctrl_node") {
