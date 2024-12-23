@@ -25,7 +25,7 @@ def generate_launch_description():
             Node(
                 package = 'torcs_img_publisher',
                 name = 'torcs_img_publisher',
-                executable = 'torcs_img_publisher_node',
+                executable = 'torcs_img_publisher',
                 parameters = [os.path.join(package_dir, 'config', 'params.yaml'),],
                 remappings = [
                     ('ego_view', 'pov_image'),
@@ -33,4 +33,4 @@ def generate_launch_description():
             ),
         ]),
     ])
-return ld
+    return ld
