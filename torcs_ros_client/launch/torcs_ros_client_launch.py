@@ -25,7 +25,7 @@ def generate_launch_description():
             Node(
                 package = 'torcs_ros_client',
                 name = 'torcs_ros_client',
-                executable = 'torcs_ros_client_node',
+                executable = 'torcs_ros_client',
                 parameters = [os.path.join(package_dir, 'config', 'params.yaml'),],
                 remappings = [
                     ('/tf', 'tf'),
@@ -41,4 +41,4 @@ def generate_launch_description():
             ),
         ]),
     ])
-return ld
+    return ld
