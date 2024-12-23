@@ -6,19 +6,19 @@
 
         # Stuck constants
 
-        stuckTime : 25
+        stuckTime : 25.0
         stuckAngle : 0.523598775 #PI/6
 
         # Accel and Brake Constants
 
-        maxSpeedDist: 70
-        maxSpeed: 150
+        maxSpeedDist: 70.0
+        maxSpeed: 150.0
 
         # Steering constants
 
         steerLock: 0.366519 
         steerSensitivityOffset: 80.0
-        wheelSensitivityCoeff: 1
+        wheelSensitivityCoeff: 1.0
 
         # ABS Filter Constants 
 
@@ -33,7 +33,7 @@
         clutchDelta: 0.05
         clutchRange: 0.82
         clutchDeltaTime: 0.02
-        clutchDeltaRaced: 10
+        clutchDeltaRaced: 10.0
         clutchDec: 0.01
         clutchMaxModifier: 1.3
         clutchMaxTime: 1.5

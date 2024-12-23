@@ -25,14 +25,14 @@ def generate_launch_description():
             Node(
                 package = 'torcs_ros_drive_ctrl',
                 name = 'torcs_ros_drive_ctrl',
-                executable = 'torcs_ros_drive_ctrl_node',
+                executable = 'torcs_ros_drive_ctrl',
                 parameters = [os.path.join(package_dir, 'config', 'params.yaml'),],
                 remappings = [
                     ('/tf', 'tf'),
                     ('/tf_static', 'tf_static'),
-                    ('torcs_ctrl_in', 'ctrl_cmd'),
-                    ('torcs_ctrl_out', 'ctrl_state'),
-                    ('torcs_sensors_out', 'sensors_state'),
+                    ('torcs_ctrl_in', 'ctrl_state'),
+                    ('torcs_ctrl_out', 'ctrl_cmd'),
+                    ('torcs_sensors_in', 'sensors_state'),
                     ('torcs_track', 'scan_track'),
                     ('torcs_opponents', 'scan_opponents'),
                     ('torcs_focus', 'scan_focus'),
@@ -41,4 +41,4 @@ def generate_launch_description():
             ),
         ]),
     ])
-return ld
+    return ld
