@@ -17,6 +17,7 @@ def generate_launch_description():
     use_namespace = LaunchConfiguration('use_namespace')
     use_rviz = LaunchConfiguration('use_rviz')
     use_driver = LaunchConfiguration('use_driver')
+    publish_game_img = LaunchConfiguration('publish_game_img')
     rviz_config_file = LaunchConfiguration('rviz_config_file')
 
     torcs_ros_client = IncludeLaunchDescription(
@@ -29,6 +30,7 @@ def generate_launch_description():
 
     torcs_img_publisher = IncludeLaunchDescription(
         PythonLaunchDescriptionSource([PathJoinSubstitution([torcs_img_publisher_dir, 'launch', 'torcs_img_publisher_launch.py'])]),
+            condition=IfCondition(publish_game_img),
             launch_arguments={
                 'robot_id':robot_id,
                 'use_namespace': use_namespace,
@@ -64,11 +66,12 @@ def generate_launch_description():
         DeclareLaunchArgument('robot_id', description='Robot ID', default_value='leo_sim'),
         DeclareLaunchArgument('use_rviz', default_value='True', description='Whether to start rviz'),
         DeclareLaunchArgument('use_driver', default_value='True', description='Whether to start driving'),
+        DeclareLaunchArgument('publish_game_img', default_value='True', description='Whether to start the Game image'),
         DeclareLaunchArgument('rviz_config_file', default_value=os.path.join(package_dir, 'config', 'torcs.rviz'), description='Full path to the RVIZ config file to use'),
     ])
 
     ld.add_action(torcs_ros_client)
-    # ld.add_action(torcs_img_publisher)
+    ld.add_action(torcs_img_publisher)
     ld.add_action(torcs_ros_drive_ctrl)
     ld.add_action(rviz_cmd)
 
