@@ -6,6 +6,7 @@
 #include <cstdio>
 #include <netdb.h>
 #include <netinet/in.h>
+#include <pthread.h>
 #include <unistd.h>
 
 /*** defines for UDP *****/
@@ -24,121 +25,127 @@ typedef struct sockaddr_in tSockAddrIn;
 using namespace std;
 
 // ROS includes
-#include <ros/ros.h>
-#include <std_msgs/Header.h>
-#include <std_msgs/String.h>
-#include <std_msgs/Bool.h>
-#include <sensor_msgs/LaserScan.h>
-#include <geometry_msgs/TwistStamped.h>
-#include <torcs_msgs/TORCSCtrl.h>
-#include <torcs_msgs/TORCSSensors.h>
-#include <tf/tf.h>
-#include <tf/transform_broadcaster.h> //Used to broadcast frame 
-#include <tf/transform_datatypes.h> //Used to transform roll/pitch/yaw to geometry_msgs::quaternion
+#include "rclcpp/rclcpp.hpp"
+#include <std_msgs/msg/header.hpp>
+#include <std_msgs/msg/string.hpp>
+#include <std_msgs/msg/bool.hpp>
+#include <sensor_msgs/msg/laser_scan.hpp>
+#include <geometry_msgs/msg/twist_stamped.hpp>
+#include <geometry_msgs/msg/pose_stamped.hpp>
+#include <geometry_msgs/msg/vector3_stamped.hpp>
+#include <torcs_interfaces/msg/torcs_ctrl.hpp>
+#include <torcs_interfaces/msg/torcs_sensors.hpp>
+#include <tf2_ros/buffer.h>
+#include <tf2/buffer_core.h>
+#include <tf2_ros/transform_broadcaster.h>
 
 #include <SimpleParser.h>
 
-class TORCSROSClient{
+class torcs_ros_client_node : public rclcpp::Node 
+{
 private:
-  struct config_struct{
-    std::string host_name;
-    int server_port;
-    std::string id; 
-    int max_episodes;
-    int max_steps;
-    std::string track_name;
-    int stage;
-    int num_opponents_ranges;
-    int num_track_ranges;
-    int num_focus_ranges;
-    double loop_rate;
-  };
-  config_struct config_;
+    struct config_struct
+    {
+        std::string host_name;
+        int server_port;
+        std::string id; 
+        int max_episodes;
+        int max_steps;
+        std::string track_name;
+        int stage;
+        int num_opponents_ranges;
+        int num_track_ranges;
+        int num_focus_ranges;
+        double loop_rate;
+    };
 
-  sensor_msgs::LaserScan track_;
-  sensor_msgs::LaserScan opponents_;
-  sensor_msgs::LaserScan focus_;
-  geometry_msgs::TwistStamped speed_;
-  geometry_msgs::TwistStamped globalSpeed_; //car speed in reference to world frame
-  geometry_msgs::PoseStamped globalPose_; //car pose in reference to world frame 
-  geometry_msgs::Vector3Stamped globalRPY_; //roll pitch yaw of car in reference to world frame
-  std_msgs::Bool restart_;
+    config_struct config_;
 
-  float wheelSpinVel_[4];
-  float* track_array_;
-  float* opponents_array_; 
-  float* focus_array_;
+    sensor_msgs::msg::LaserScan track_;
+    sensor_msgs::msg::LaserScan opponents_;
+    sensor_msgs::msg::LaserScan focus_;
+    geometry_msgs::msg::TwistStamped speed_;
+    geometry_msgs::msg::TwistStamped globalSpeed_; //car speed in reference to world frame
+    geometry_msgs::msg::PoseStamped globalPose_; //car pose in reference to world frame 
+    geometry_msgs::msg::Vector3Stamped globalRPY_; //roll pitch yaw of car in reference to world frame
+    std_msgs::msg::Bool restart_;
 
-  torcs_msgs::TORCSCtrl torcs_ctrl_;
-  torcs_msgs::TORCSSensors torcs_sensors_;
+    float wheelSpinVel_[4];
+    float* track_array_; 
+    float* opponents_array_; 
+    float* focus_array_;
 
-  SOCKET socketDescriptor_;
-  int numRead_;
+    torcs_interfaces::msg::TORCSCtrl torcs_ctrl_;  
+    torcs_interfaces::msg::TORCSSensors torcs_sensors_;
 
-  char hostName_[1000];
-  unsigned int serverPort_;
-  char id_[1000];
-  unsigned int maxEpisodes_;
-  char trackName_[1000];
+    SOCKET socketDescriptor_;
+    int numRead_;
 
-  tSockAddrIn serverAddress_;
-  struct hostent *hostInfo_;
-  struct timeval timeVal_;
-  fd_set readSet_;
-  char buf_[UDP_MSGLEN];
+    char hostName_[1000];
+    unsigned int serverPort_;
+    char id_[1000];
+    unsigned int maxEpisodes_;
+    char trackName_[1000];
 
-  bool shutdownClient_;
-  unsigned long curEpisode_;
-  unsigned long currentStep_; 
+    tSockAddrIn serverAddress_;
+    struct hostent *hostInfo_;
+    struct timeval timeVal_;
+    fd_set readSet_;
+    char buf_[UDP_MSGLEN];
 
-  std_msgs::String debug_string_;
+    bool shutdownClient_;
+    unsigned long curEpisode_;
+    unsigned long currentStep_; 
+
+    std_msgs::msg::String debug_string_;
+    std::unique_ptr<tf2_ros::TransformBroadcaster> tf_broadcaster_;
 
 public:
-  ros::NodeHandle nh_, pnh_;
+    rclcpp::TimerBase::SharedPtr timer_;
 
-  ros::Subscriber ctrl_sub_;
-  ros::Publisher ctrl_pub_;
-  ros::Publisher torcs_sensors_pub_;
-  ros::Publisher track_pub_;
-  ros::Publisher opponents_pub_;
-  ros::Publisher focus_pub_;
-  ros::Publisher speed_pub_;
-  ros::Publisher debug_pub_;
-  ros::Publisher globalSpeed_pub_;
-  ros::Publisher globalPose_pub_;
-  ros::Publisher globalRPY_pub_; //redundant, as information is present in quaternion of pose
-  ros::Publisher restart_pub_;
+    rclcpp::Subscription<torcs_interfaces::msg::TORCSCtrl>::SharedPtr ctrl_sub_;
+    rclcpp::Publisher<torcs_interfaces::msg::TORCSCtrl>::SharedPtr ctrl_pub_;
+    rclcpp::Publisher<torcs_interfaces::msg::TORCSSensors>::SharedPtr torcs_sensors_pub_;
+    rclcpp::Publisher<sensor_msgs::msg::LaserScan>::SharedPtr track_pub_;
+    rclcpp::Publisher<sensor_msgs::msg::LaserScan>::SharedPtr opponents_pub_;
+    rclcpp::Publisher<sensor_msgs::msg::LaserScan>::SharedPtr focus_pub_;
+    rclcpp::Publisher<geometry_msgs::msg::TwistStamped>::SharedPtr speed_pub_;
+    rclcpp::Publisher<std_msgs::msg::String>::SharedPtr debug_pub_;
+    rclcpp::Publisher<std_msgs::msg::Bool>::SharedPtr restart_pub_;
+    rclcpp::Publisher<geometry_msgs::msg::TwistStamped>::SharedPtr globalSpeed_pub_;
+    rclcpp::Publisher<geometry_msgs::msg::PoseStamped>::SharedPtr globalPose_pub_;
+    rclcpp::Publisher<geometry_msgs::msg::Vector3Stamped>::SharedPtr globalRPY_pub_;
 
-  TORCSROSClient();
-  ~TORCSROSClient();
+    torcs_ros_client_node();
+    ~torcs_ros_client_node();
 
-  bool connect();
+    bool connect();
 
-  void update();
+    void timer_callback();
 
-  double getLoopRate();
+    double getLoopRate();
 
-  void getParams();
+    void getParams();
 
-  void ctrlCallback(const torcs_msgs::TORCSCtrl::ConstPtr& msg);
+    void ctrlCallback(const torcs_interfaces::msg::TORCSCtrl::SharedPtr msg);
 
-  bool getShutdownClientStatus();
+    bool getShutdownClientStatus();
 
-  void laserMsgToFloatArray(sensor_msgs::LaserScan scan, float* result);
-  void laserMsgFromFloatArray(float* float_array, sensor_msgs::LaserScan &scan_result);
+    void laserMsgToFloatArray(sensor_msgs::msg::LaserScan scan, float* result);
+    void laserMsgFromFloatArray(float* float_array, sensor_msgs::msg::LaserScan &scan_result);
 
-  std::string ctrlMsgToString();
+    std::string ctrlMsgToString();
 
-  sensor_msgs::LaserScan initRangeFinder(std::string frame, double angle_min, double angle_max, double range_min, double range_max, int ranges_dim);
+    sensor_msgs::msg::LaserScan initRangeFinder(std::string frame, double angle_min, double angle_max, double range_min, double range_max, int ranges_dim);
 
-  std::string sensorsMsgToString();
+    std::string sensorsMsgToString();
 
-  void sensorsMsgFromString(std::string torcs_string);
+    void sensorsMsgFromString(std::string torcs_string);
 
-  virtual void init_angles(float *angles){
-    for (int i = 0; i < 19; ++i)
-      angles[i]=-90+i*10;
-  };
+    virtual void init_angles(float *angles){
+        for (int i = 0; i < 19; ++i)
+        angles[i]=-90+i*10;
+    };
 
 };
 

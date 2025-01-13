@@ -1,16 +1,18 @@
-cmake_minimum_required(VERSION 2.8.3)
+cmake_minimum_required(VERSION 3.5)
 project(torcs_ros_bringup)
 
-## Add support for C++11, supported in ROS Kinetic and newer
-# add_definitions(-std=c++11)
+find_package(ament_cmake REQUIRED)
+find_package(torcs_ros_client REQUIRED)
+find_package(torcs_ros_drive_ctrl REQUIRED)
+find_package(torcs_img_publisher REQUIRED)
 
-## Find catkin macros and libraries
-## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
-## is used, also find other catkin packages
-find_package(catkin REQUIRED COMPONENTS
-)
+install(DIRECTORY launch DESTINATION share/${PROJECT_NAME})
+#install(DIRECTORY rviz DESTINATION share/${PROJECT_NAME})
+install(DIRECTORY config DESTINATION share/${PROJECT_NAME})
 
-#############
-## Install ##
-#############
+if(BUILD_TESTING)
+    find_package(ament_lint_auto REQUIRED)
+    ament_lint_auto_find_test_dependencies()
+endif()
 
+ament_package()

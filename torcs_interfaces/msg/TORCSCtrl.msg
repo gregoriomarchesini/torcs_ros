@@ -1,4 +1,4 @@
-Header header
+std_msgs/Header header
 # Virtual gas pedal (0 means no gas, 1 full gas)
 float64 accel
 # Virtual brake pedal (0 means no brake, 1 full brake)

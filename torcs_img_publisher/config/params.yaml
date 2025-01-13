@@ -1,0 +1,6 @@
+/**:
+    ros__parameters:
+        resize_width: 640
+        resize_height: 480
+        paused: 1
+        loop_rate: 10.0
