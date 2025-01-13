@@ -1,14 +1,13 @@
 # A ROS2 wrapper for The Open Source Race Car Simulator (TORCS)
 
 This is a ROS implementation of the client and driver from the [TORCS SCR C++ client](https://sourceforge.net/projects/cig/files/SCR%20Championship/Client%20C%2B%2B/). 
-For the code in this repository to work you need a [patched version](https://github.com/fmirus/torcs-1.3.7) of [torcs1.3.7](https://sourceforge.net/projects/torcs/). 
+For the code in this repository to work, you need a [patched version](https://github.com/fmirus/torcs-1.3.7) of [torcs1.3.7](https://sourceforge.net/projects/torcs/). 
 This has been tested with Ubuntu 24.04 and [ROS2 Jazzy](https://docs.ros.org/en/jazzy/index.html)
 
 ## Installation 
 
  - Install the patched version of torcs1.3.7 according to its [installation instructions](https://github.com/fmirus/torcs-1.3.7)
  - Install ROS2 Jazzy according to the [installation instructions](https://docs.ros.org/en/jazzy/Installation/Ubuntu-Install-Debs.html) 
- -
  - Clone this repository into your workspace and build it by running 
  ```bash
     colcon build --packages-up-to torcs_ros_bringup && source install/setup.bash
