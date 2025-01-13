@@ -44,3 +44,7 @@ If you want to use your own driver instead of the simple driver in ```torcs_ros_
 ```bash
   ros2 launch torcs_ros_bringup torcs_ros_bringup_launch.py use_driver:=False
 ``` 
+
+## Preview
+
+![torcs_ros preview](media/torcs_ros.gif)
