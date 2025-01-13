@@ -1,3 +1,4 @@
+#include <csignal>
 #include <torcs_img_publisher/torcs_img_publisher.h>
 
 // constructor
@@ -34,22 +35,24 @@ torcs_image_publisher_node::torcs_image_publisher_node() : Node("torcs_image_pub
     shared_->save_flag = 0;
 
     // Setup opencv
-    cv::Mat screenRGB_(cvSize(image_width,image_height),IPL_DEPTH_8U,3);
-    cv::Mat resizeRGB_(cvSize(config_.resize_width,config_.resize_height),IPL_DEPTH_8U,3);
+    screenRGB_ = cv::Mat(cvSize(image_width, image_height),CV_8UC3);
+
+    resizeRGB_ = cv::Mat(cvSize(config_.resize_width, config_.resize_height),CV_8UC3);
 
     header_ = std_msgs::msg::Header();
     // publisher
     image_publisher_ = it_.advertise("pov_image", 1);
 
-    // cv::namedWindow("TORCS Image");
+    //cv::namedWindow("TORCS Image");
 }
 
 torcs_image_publisher_node::~torcs_image_publisher_node(){
-    // cv::destroyWindow("TORCS Image");
+    //cv::destroyWindow("TORCS Image");
 }
 
 void torcs_image_publisher_node::getParams()
 {
+    RCLCPP_ERROR(get_logger(), "ImgPublisher  Read parameters");
     declare_parameter("loop_rate", (double)10.0);
     config_.loop_rate = get_parameter("loop_rate").as_double(); 
 
@@ -65,32 +68,30 @@ void torcs_image_publisher_node::getParams()
 
 void torcs_image_publisher_node::timer_callback()
 {
-  if (shared_->written == 1) {
+    if (shared_->written == 1) {
 
-    for (int h = 0; h < image_height; h++) {
-      for (int w = 0; w < image_width; w++) {
-       screenRGB_.data[(h*image_width+w)*3+2]=shared_->data[((image_height-h-1)*image_width+w)*3+0];
-       screenRGB_.data[(h*image_width+w)*3+1]=shared_->data[((image_height-h-1)*image_width+w)*3+1];
-       screenRGB_.data[(h*image_width+w)*3+0]=shared_->data[((image_height-h-1)*image_width+w)*3+2];
-      }
-    }
-    
-    resize(screenRGB_, resizeRGB_, cvSize(config_.resize_width,config_.resize_height));
-    
-    //Mat img = cvarrToMat(resizeRGB_, true);
-    // Update GUI Window
-    // cv::imshow("TORCS Image", img);
-    // cv::waitKey(3);
+        for (int h = 0; h < image_height; h++) {
+            for (int w = 0; w < image_width; w++) {
+                screenRGB_.at<cv::Vec3b>(h, w)[2] = shared_->data[((image_height-h-1)*image_width+w)*3+0];
+                screenRGB_.at<cv::Vec3b>(h, w)[1] = shared_->data[((image_height-h-1)*image_width+w)*3+1];
+                screenRGB_.at<cv::Vec3b>(h, w)[0] = shared_->data[((image_height-h-1)*image_width+w)*3+2];
+            }
+        }
 
-    header_.stamp = this->get_clock()->now();
+        resize(screenRGB_, resizeRGB_, cvSize(config_.resize_width,config_.resize_height));
+        
+        // Update GUI Window
+        //cv::imshow("TORCS Image", resizeRGB_);
+        //cv::waitKey(3);
+
+        header_.stamp = this->get_clock()->now();
   
-    //sensor_msgs::msg::Image::SharedPtr msg = cv_bridge::CvImage(header_, "bgr8", img).toImageMsg();
-    sensor_msgs::msg::Image::SharedPtr msg = cv_bridge::CvImage(header_, "bgr8", resizeRGB_).toImageMsg();
+        sensor_msgs::msg::Image::SharedPtr msg = cv_bridge::CvImage(header_, "bgr8", resizeRGB_).toImageMsg();
     
-    image_publisher_.publish(msg);
+        image_publisher_.publish(msg);
 
-    shared_->written=0;
-  }
+        shared_->written=0;
+    }
 }
 
 double torcs_image_publisher_node::getLoopRate()
