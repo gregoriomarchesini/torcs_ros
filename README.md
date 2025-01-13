@@ -2,7 +2,8 @@
 
 This is a ROS implementation of the client and driver from the [TORCS SCR C++ client](https://sourceforge.net/projects/cig/files/SCR%20Championship/Client%20C%2B%2B/). 
 For the code in this repository to work, you need a [patched version](https://github.com/fmirus/torcs-1.3.7) of [torcs1.3.7](https://sourceforge.net/projects/torcs/). 
-This has been tested with Ubuntu 24.04 and [ROS2 Jazzy](https://docs.ros.org/en/jazzy/index.html)
+This has been tested with Ubuntu 24.04 and [ROS2 Jazzy](https://docs.ros.org/en/jazzy/index.html).
+For reference, the old ROS1 version is still available in the [ros1 branch](https://github.com/fmirus/torcs_ros/tree/ros1).
 
 ## Installation 
 
